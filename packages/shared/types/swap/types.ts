@@ -126,7 +126,6 @@ export enum ESwapApproveTransactionStatus {
   PENDING = 'pending',
   SUCCESS = 'success',
   CANCEL = 'cancel',
-  DISCARD = 'discard',
   FAILED = 'failed',
 }
 export interface ISwapApproveTransaction {
@@ -202,6 +201,7 @@ export interface IFetchQuoteResult {
   unSupportSlippage?: boolean;
   fromTokenInfo: ISwapTokenBase;
   toTokenInfo: ISwapTokenBase;
+  quoteResultCtx?: any;
 }
 
 export interface IAllowanceResult {
@@ -272,6 +272,7 @@ export interface IFetchBuildTxParams extends IFetchSwapQuoteBaseParams {
   slippagePercentage: number;
   toTokenAmount: string;
   provider: string;
+  quoteResultCtx?: any;
 }
 export interface IFetchBuildTxResult extends IFetchQuoteResult {
   arrivalTime?: number;
@@ -337,7 +338,8 @@ export enum ESwapTxHistoryStatus {
   SUCCESS = 'success',
   FAILED = 'failed',
   PENDING = 'pending',
-  DISCARD = 'discard',
+  CANCELED = 'canceled',
+  CANCELING = 'canceling',
 }
 
 export interface IFetchSwapTxHistoryStatusResponse {

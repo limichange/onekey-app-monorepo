@@ -181,7 +181,10 @@ class ProviderApiAptos extends ProviderApiBase {
     const result =
       await this.backgroundApi.serviceDApp.openSignAndSendTransactionModal({
         request,
-        encodedTx: encodeTx,
+        encodedTx: {
+          ...encodeTx,
+          ...encodeTx.payload,
+        },
         accountId: account.id,
         networkId: accountInfo?.networkId ?? '',
       });
@@ -529,6 +532,7 @@ class ProviderApiAptos extends ProviderApiBase {
         rawTx: bufferUtils.bytesToHex(bcsTxn),
       },
       accountAddress: account.address,
+      accountId: accountInfo?.accountId ?? '',
       networkId: accountInfo?.networkId ?? '',
     });
     return res;

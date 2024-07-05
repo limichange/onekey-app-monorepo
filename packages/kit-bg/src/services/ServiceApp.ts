@@ -21,7 +21,8 @@ import resetUtils from '@onekeyhq/shared/src/utils/resetUtils';
 import timerUtils from '@onekeyhq/shared/src/utils/timerUtils';
 
 import localDb from '../dbs/local/localDb';
-import { v4migrationPersistAtom } from '../states/jotai/atoms';
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import v4dbHubs from '../migrations/v4ToV5Migration/v4dbHubs';
 
 import ServiceBase from './ServiceBase';
 
@@ -59,6 +60,8 @@ class ServiceApp extends ServiceBase {
     if (platformEnv.isRuntimeBrowser) {
       try {
         global.localStorage.clear();
+        // reset href
+        global.location.href = '/';
       } catch {
         console.error('window.localStorage.clear() error');
       }
@@ -73,9 +76,9 @@ class ServiceApp extends ServiceBase {
 
   @backgroundMethod()
   async resetApp() {
-    const v4migrationPersistData = await v4migrationPersistAtom.get();
-    const v4migrationAutoStartDisabled =
-      v4migrationPersistData?.v4migrationAutoStartDisabled;
+    // const v4migrationPersistData = await v4migrationPersistAtom.get();
+    // const v4migrationAutoStartDisabled =
+    //   v4migrationPersistData?.v4migrationAutoStartDisabled;
 
     resetUtils.startResetting();
     try {
@@ -87,11 +90,23 @@ class ServiceApp extends ServiceBase {
     }
 
     await timerUtils.wait(600);
-    await this.backgroundApi.serviceV4Migration.saveAppStorageV4migrationAutoStartDisabled(
-      {
-        v4migrationAutoStartDisabled,
-      },
-    );
+
+    // await this.backgroundApi.serviceV4Migration.saveAppStorageV4migrationAutoStartDisabled(
+    //   {
+    //     v4migrationAutoStartDisabled,
+    //   },
+    // );
+
+    try {
+      const isV4DbExist: boolean =
+        await this.backgroundApi.serviceV4Migration.checkIfV4DbExist();
+      if (isV4DbExist) {
+        await v4dbHubs.v4localDb.reset();
+      }
+    } catch (error) {
+      //
+    }
+
     this.restartApp();
   }
 

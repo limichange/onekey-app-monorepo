@@ -178,6 +178,7 @@ function SendReplaceTxContainer() {
         });
 
       const f = await backgroundApiProxy.serviceGas.estimateFee({
+        accountId,
         networkId,
         accountAddress: account.address,
         encodedTx,
@@ -743,6 +744,7 @@ function SendReplaceTxContainer() {
           replaceHistoryId: historyTx.id,
           replaceType,
         },
+        transferPayload: undefined,
       });
       setIsSubmitting(false);
       Toast.success({

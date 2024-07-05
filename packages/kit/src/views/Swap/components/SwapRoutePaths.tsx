@@ -46,29 +46,35 @@ const SwapRoutePaths = ({ routeContent }: ISwapRoutePathProps) => (
                 <Stack key={index} h="$0.5" bg="$borderSubdued" flex={1} />
               ))}
             </XStack>
-            {row.map((item, itemIndex) => (
-              <Stack key={itemIndex} bg="$bgApp" alignItems="center">
-                <XStack>
-                  {item.images.map((image, index) => (
-                    <Token
-                      key={index}
-                      size="sm"
-                      tokenImageUri={image.logoImageUri}
-                      {...(index !== 0 && {
-                        ml: '$-2.5',
-                      })}
-                    />
-                  ))}
-                </XStack>
-                <SizableText
-                  pt="$1.5"
-                  size="$bodySmMedium"
-                  color="$textSubdued"
-                >
-                  {item.label}
-                </SizableText>
-              </Stack>
-            ))}
+            {row.map((item, itemIndex) => {
+              const maxWidth = `$${4 + 4 * item.images.length}`;
+              return (
+                <Stack key={itemIndex} alignItems="center">
+                  <XStack bg="$bgApp" maxWidth={maxWidth}>
+                    {item.images.map((image, index) => (
+                      <Token
+                        key={index}
+                        size="sm"
+                        tokenImageUri={image.logoImageUri}
+                        {...(index !== 0 && {
+                          ml: '$-2.5',
+                        })}
+                      />
+                    ))}
+                  </XStack>
+                  <Stack maxWidth="$16" $gtMd={{ maxWidth: '$24' }}>
+                    <SizableText
+                      pt="$1.5"
+                      size="$bodySmMedium"
+                      color="$textSubdued"
+                      numberOfLines={1}
+                    >
+                      {item.label}
+                    </SizableText>
+                  </Stack>
+                </Stack>
+              );
+            })}
           </XStack>
         ))}
       </>

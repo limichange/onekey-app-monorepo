@@ -161,9 +161,14 @@ export default class VaultBtc extends VaultBase {
 
     if (swapInfo) {
       const swapSendToken = swapInfo.sender.token;
+      const providerInfo = swapInfo.swapBuildResData.result.info;
       const action = await this.buildTxTransferAssetAction({
         from: swapInfo.accountAddress,
         to: utxoTo[0].address,
+        application: {
+          name: providerInfo.providerName,
+          icon: providerInfo.providerLogo ?? '',
+        },
         transfers: [
           {
             from: swapInfo.accountAddress,
@@ -701,6 +706,7 @@ export default class VaultBtc extends VaultBase {
     async () => {
       try {
         const feeInfo = await this.backgroundApi.serviceGas.estimateFee({
+          accountId: this.accountId,
           networkId: this.networkId,
           accountAddress: await this.getAccountAddress(),
         });

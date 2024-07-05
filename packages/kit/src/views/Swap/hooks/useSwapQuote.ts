@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useIsFocused } from '@react-navigation/core';
 
 import { EPageType, usePageType } from '@onekeyhq/components';
+import { useInAppNotificationAtom } from '@onekeyhq/kit-bg/src/states/jotai/atoms';
 import { ETabRoutes } from '@onekeyhq/shared/src/routes';
 import {
   ESwapApproveTransactionStatus,
@@ -15,7 +16,6 @@ import useListenTabFocusState from '../../../hooks/useListenTabFocusState';
 import {
   useSwapActions,
   useSwapApproveAllowanceSelectOpenAtom,
-  useSwapApprovingTransactionAtom,
   useSwapFromTokenAmountAtom,
   useSwapSelectFromTokenAtom,
   useSwapSelectToTokenAtom,
@@ -35,18 +35,16 @@ export function useSwapQuote() {
   const [swapApproveAllowanceSelectOpen] =
     useSwapApproveAllowanceSelectOpenAtom();
   const [fromTokenAmount, setFromTokenAmount] = useSwapFromTokenAmountAtom();
-  const [swapApprovingTransactionAtom] = useSwapApprovingTransactionAtom();
-  const activeAccountAddressRef = useRef<string | undefined>();
-  const activeAccountNetworkIdRef = useRef<string | undefined>();
-  if (activeAccountAddressRef.current !== swapAddressInfo?.address) {
-    activeAccountAddressRef.current = swapAddressInfo?.address;
-  }
-  if (activeAccountNetworkIdRef.current !== swapAddressInfo.networkId) {
-    activeAccountNetworkIdRef.current = swapAddressInfo.networkId;
+  const [{ swapApprovingTransaction }] = useInAppNotificationAtom();
+  const activeAccountRef = useRef<
+    ReturnType<typeof useSwapAddressInfo> | undefined
+  >();
+  if (activeAccountRef.current !== swapAddressInfo) {
+    activeAccountRef.current = swapAddressInfo;
   }
   const swapApprovingTxRef = useRef<ISwapApproveTransaction | undefined>();
-  if (swapApprovingTxRef.current !== swapApprovingTransactionAtom) {
-    swapApprovingTxRef.current = swapApprovingTransactionAtom;
+  if (swapApprovingTxRef.current !== swapApprovingTransaction) {
+    swapApprovingTxRef.current = swapApprovingTransaction;
   }
   const fromAmountDebounce = useDebounce(fromTokenAmount, 500);
   const alignmentDecimal = useCallback(() => {
@@ -63,7 +61,10 @@ export function useSwapQuote() {
     if (swapSlippageDialogOpening || swapApproveAllowanceSelectOpen) {
       cleanQuoteInterval();
     } else {
-      void recoverQuoteInterval(activeAccountAddressRef.current);
+      void recoverQuoteInterval(
+        activeAccountRef.current?.address,
+        activeAccountRef.current?.accountInfo?.account?.id,
+      );
     }
   }, [
     cleanQuoteInterval,
@@ -74,25 +75,29 @@ export function useSwapQuote() {
 
   useEffect(() => {
     if (
-      swapApprovingTransactionAtom &&
-      swapApprovingTransactionAtom.txId &&
-      swapApprovingTransactionAtom.status ===
+      swapApprovingTransaction &&
+      swapApprovingTransaction.txId &&
+      swapApprovingTransaction.status ===
         ESwapApproveTransactionStatus.SUCCESS &&
-      !swapApprovingTransactionAtom.resetApproveValue
+      !swapApprovingTransaction.resetApproveValue
     ) {
       void quoteAction(
-        activeAccountAddressRef.current,
-        swapApprovingTransactionAtom.blockNumber,
+        activeAccountRef.current?.address,
+        activeAccountRef.current?.accountInfo?.account?.id,
+        swapApprovingTransaction.blockNumber,
       );
     }
-  }, [cleanQuoteInterval, quoteAction, swapApprovingTransactionAtom]);
+  }, [cleanQuoteInterval, quoteAction, swapApprovingTransaction]);
 
   useEffect(() => {
-    if (fromToken?.networkId !== activeAccountNetworkIdRef.current) {
+    if (fromToken?.networkId !== activeAccountRef.current?.networkId) {
       return;
     }
     alignmentDecimal();
-    void quoteAction(activeAccountAddressRef.current);
+    void quoteAction(
+      activeAccountRef.current?.address,
+      activeAccountRef.current?.accountInfo?.account?.id,
+    );
     return () => {
       cleanQuoteInterval();
     };
@@ -113,7 +118,10 @@ export function useSwapQuote() {
     (isFocus: boolean, isHiddenModel: boolean) => {
       if (pageType !== EPageType.modal) {
         if (isFocus && !isHiddenModel && !swapApprovingTxRef.current?.txId) {
-          void recoverQuoteInterval(activeAccountAddressRef.current);
+          void recoverQuoteInterval(
+            activeAccountRef.current?.address,
+            activeAccountRef.current?.accountInfo?.account?.id,
+          );
         } else {
           cleanQuoteInterval();
         }
@@ -125,7 +133,10 @@ export function useSwapQuote() {
   useEffect(() => {
     if (pageType === EPageType.modal) {
       if (isFocused && !swapApprovingTxRef.current?.txId) {
-        void recoverQuoteInterval(activeAccountAddressRef.current);
+        void recoverQuoteInterval(
+          activeAccountRef.current?.address,
+          activeAccountRef.current?.accountInfo?.account?.id,
+        );
       } else {
         cleanQuoteInterval();
       }

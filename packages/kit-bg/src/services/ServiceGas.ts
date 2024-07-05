@@ -21,11 +21,18 @@ class ServiceGas extends ServiceBase {
 
   @backgroundMethod()
   async estimateFee(params: IEstimateGasParams) {
+    const { accountId, ...rest } = params;
     const client = await this.getClient(EServiceEndpointEnum.Wallet);
 
     const resp = await client.post<{ data: IEstimateGasResp }>(
       '/wallet/v1/account/estimate-fee',
-      params,
+      rest,
+      {
+        headers:
+          await this.backgroundApi.serviceAccountProfile._getWalletTypeHeader({
+            accountId,
+          }),
+      },
     );
     const feeInfo = resp.data.data;
     return {

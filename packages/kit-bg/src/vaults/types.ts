@@ -131,7 +131,11 @@ export type IVaultSettings = {
   watchingAccountEnabled: boolean;
   externalAccountEnabled: boolean;
   hardwareAccountEnabled: boolean;
+  publicKeyExportEnabled?: boolean;
+
   softwareAccountDisabled?: boolean;
+  addressBookDisabled?: boolean;
+  copyAddressDisabled?: boolean;
 
   disabledSwapAction?: boolean;
   disabledSendAction?: boolean;
@@ -429,6 +433,7 @@ export interface IUpdateUnsignedTxParams {
   nativeAmountInfo?: INativeAmountInfo;
 }
 export interface IBroadcastTransactionParams {
+  accountId: string;
   networkId: string;
   accountAddress: string;
   signedTx: ISignedTxPro;
@@ -462,6 +467,7 @@ export interface IBatchSignTransactionParamsBase {
   signOnly?: boolean;
   sourceInfo?: IDappSourceInfo;
   replaceTxInfo?: IReplaceTxInfo;
+  transferPayload: ITransferPayload | undefined;
 }
 
 export interface ISignMessageParams {
